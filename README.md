@@ -8,8 +8,9 @@ mechanism to prevent the server from hanging on interactive commands.
 You can adjust the `PORT` and `TIMEOUT` constants to change the listening port
 and command timeout duration.
     
-Usage:
 ```bash
+Usage
+
 # Start the python server
 python bind_shell.py
 
@@ -23,5 +24,7 @@ php bind_shell.php
 nc ip_address listening_port
 ```
 
+```
 Disclaimer: 
-This code is for educational purposes only. Use it at your own risk. 
+This code is for educational purposes only. Use it at your own risk.
+```
