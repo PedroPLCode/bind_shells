@@ -6,7 +6,7 @@
 #               direct bidirectional loop using a temporary named pipe (FIFO).
 #               This ensures immediate command execution and response streaming.
 #
-# USAGE:        ./server.sh
+# USAGE:        ./bind_shell.sh
 #               Connect via: nc <ip_address> 4444
 #
 # DISCLAIMER:  This code is for educational purposes only. Use it at your own risk.
