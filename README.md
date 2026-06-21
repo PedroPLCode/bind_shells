@@ -1,6 +1,6 @@
 # Bind Shells
 
-A minimalist, single-threaded TCP bind shell servers written in python and php.
+A minimalist, single-threaded TCP bind shell servers written in python, php and bash.
 Listens on a specified port, accepts incoming connections, and executes 
 received strings as system shell commands. Combines stdout and stderr, 
 returning the complete output to the connected client. Includes a timeout 
@@ -14,7 +14,10 @@ Usage:
 python bind_shell.py
 
 # Start the php server
-php bind_shell.py
+php bind_shell.php
+
+# Start the bash server
+./bind_shell.sh
 
 # Connect to the server
 nc ip_address listening_port
